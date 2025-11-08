@@ -2,6 +2,7 @@
 """
 Post-processing for newly-downloaded playlists.
 """
+import argparse
 from dataclasses import dataclass
 import os
 
@@ -24,13 +25,17 @@ class Song:
 class Playlist(object):
     def __init__(
             self,
-            name: str,
             path: str,
+            name: str = "",
             tracklist: list[Song] = []
         ):
-        self.name = name
         self.path = path
-        self.tracklist = tracklist if tracklist else self._load_tracklist()
+
+        self.name = (name
+                     if name
+                     else path.split("/")[-1])
+        print(self.name)
+        #self.tracklist = tracklist if tracklist else self._load_tracklist()
 
     def _load_tracklist(self) -> list[Song]:
         """Load all tracks from path."""
@@ -40,15 +45,30 @@ class Playlist(object):
 def find_playlists(base_path: str = _DEFAULT_PLAYLISTS_DIR) -> list[Playlist]:
     """Return downloaded Playlists."""
     playlists = []
-    for _, dirs, files in os.walk(base_path):
-        print(files)
-        for playlist_path in dirs:
-            print(playlist_path)
+    for root, dirs, files in os.walk(base_path):
+        for _dir in dirs:
+            if _dir:
+                print(_dir)
+        for file in files:
+            pass
     return playlists
 
-def altaria():
+def altaria(base_path: str):
     """Post-processing steps for music downloaded from tidal-dl."""
-    playlists = find_playlists()
+    playlists = (find_playlists(base_path=base_path)
+                 if base_path
+                 else find_playlists())
 
 if __name__ == "__main__":
-    altaria()
+    parser = argparse.ArgumentParser(
+            description="Post-processing for downloaded music."
+        )
+    parser.add_argument(
+            "-d",
+            "--dir",
+            type=str,
+            default="",
+            help="Path to parent directory of music."
+        )
+    args = parser.parse_args()
+    altaria(base_path=args.dir)
